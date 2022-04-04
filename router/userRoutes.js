@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const verifyUser = require("../middleware/verifyUser");
 const accountSid = "AC3a0827ce64a5629e3bc201736dcc54ed";
-const authToken = "cc76648fa20ccacc66e07b370b50a1e6";
+const authToken = "b1fab9987ece3424d7235bf8a95dfb17";
 const client = require("twilio")(accountSid, authToken);
 const saltRounds = 10;
 const JWT_SECRET = "clumpCoder"
@@ -87,6 +87,7 @@ Router.post('/signup',
                     })
                     .then((message) => console.log(message.sid));
                 let otpResponse = await otpData.save();
+                console.log("otpResponse", otpResponse);
                 return res
                     .status(200)
                     .json({
@@ -106,7 +107,6 @@ Router.get('/search/:name', async (req, res) => {
     try {
         const regex = new RegExp(req.params.name, 'i');
         let result = await Usermodel.find({ name: regex })
-        console.log("result", result);
         if (result && result.length > 0) {
             let response = {
                 result: result
@@ -120,10 +120,7 @@ Router.get('/search/:name', async (req, res) => {
         }
     } catch (error) {
         console.log("error", error);
-        let errInfo = {
-            err: error
-        }
-        res.status(400).json(errInfo);
+        res.status(500).send("Internal Server Error:" + error.message);
     }
 });
 
@@ -155,7 +152,9 @@ Router.post("/login",
                     res.json({ error: "Please Enter Valid Password" });
                 } else {
                     let data = {
-                        id: user.id
+                        user: {
+                            id: user.id
+                        }
                     }
                     const token = jwt.sign(data, JWT_SECRET);
                     res.statusCode = 200;
@@ -164,13 +163,116 @@ Router.post("/login",
             }
         } catch (error) {
             console.log("error", error);
-            res.json(
-                "Internal Server Error:" + error.message
-            )
+            res.status(500).send("Internal Server Error:" + error.message);
         }
-
     }
 )
+
+// API: Forget-password ___________________
+
+Router.post("/forget-password", async (req, res) => {
+    try {
+        // Check is A Valid User
+        let user = await Usermodel.findOne({ email: req.body.email });
+        if (!user) {
+            res.statusCode = 400;
+            res.json({
+                error: "Please Enter Valid email"
+            })
+        } else {
+            // Code for Make Otp________________
+
+            let otpCode = Math.floor(Math.random() * 10000 + 1);
+            let otpData = new Otp({
+                email: req.body.email,
+                code: otpCode,
+                expireIn: new Date().getTime() + 300 * 1000
+            });
+
+            // code to send msg to user____________
+            client.messages
+                .create({
+                    body: "Hey" + user.name + "," +
+                        " Your Otp for Verification is " +
+                        otpCode,
+                    from: "+17312062213",
+                    to: "+91" + user.mobile,
+                })
+                .then((message) => console.log(message.sid));
+            let otpInfo = await otpData.save();
+            res.statusCode = 200;
+            res.json({
+                message: "Otp sent to your registered mobile number",
+                mobile: user.mobile,
+            })
+        }
+    } catch (error) {
+        res.status(500).send("Internal Server Error:" + error.message);
+    }
+})
+
+// API: OTP Verification ___________________
+
+Router.post("/verification", async (req, res) => {
+    try {
+        let otp = await Otp.find({ code: req.body.code });
+        if (!otp[0]) {
+            res.statusCode = 400;
+            res.json({ error: "Invalid otp" })
+        } else {
+            let currentTime = new Date().getTime();
+            let diff = parseInt(otp[0].expireIn) - parseInt(currentTime);
+            if (diff < 0) {
+                res.statusCode = 400;
+                res.json({
+                    error: "Otp expired"
+                })
+            } else {
+                let user = await Usermodel.findOne({ email: otp[0].email });
+                const data = {
+                    user: {
+                        id: user.id,
+                    },
+                };
+                let authToken = jwt.sign(data, JWT_SECRET,{expiresIn: "5minutes"});
+                res.json({
+                    success: "true",
+                    authToken
+                })
+            }
+        }
+    } catch (error) {
+        console.log("otp verification error");
+        res.status(500).send("Internal Server Error:" + error.message);
+    }
+});
+
+// API : Reset Password ___________________
+
+Router.post("/reset-password",
+    verifyUser,
+    [
+        body("password", "password minimun length is 4 character").isLength({
+            min: 4
+        })
+    ],
+    async (req, res) => {
+        try {
+            let errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                res.statusCode = 400;
+                res.json({ errors: errors.array() });
+            }
+            const salt = bcrypt.genSaltSync(saltRounds);
+            const securePass = bcrypt.hashSync(req.body.password, salt);
+
+            console.log("req.user.id",req.user.id);
+        } catch (error) {
+            console.log("reset-password", error);
+            res.status(500).send("Internal Server Error:" + error.message);
+        }
+    })
+
 
 // Router.post("/uploadImage",
 //     // [
@@ -221,5 +323,6 @@ Router.post("/login",
 //         });
 //     });
 // }
+
 
 module.exports = Router;
