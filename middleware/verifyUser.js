@@ -8,7 +8,6 @@ const fetchUser = async (req, res, next) => {
         const finalToken = tokenArray[1];
         const data = jwt.verify(finalToken, JWT_SECRET);
         req.user = data.user;
-        console.log("data",data);
         req.token = finalToken;
         next();
     } catch (error) {

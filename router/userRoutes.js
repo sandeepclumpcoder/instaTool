@@ -7,11 +7,11 @@ const bcrypt = require("bcryptjs");
 // const random = require('random');
 const jwt = require("jsonwebtoken");
 const verifyUser = require("../middleware/verifyUser");
-const accountSid = "AC3a0827ce64a5629e3bc201736dcc54ed";
-const authToken = "b1fab9987ece3424d7235bf8a95dfb17";
+const accountSid = process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const saltRounds = 10;
-const JWT_SECRET = "clumpCoder"
+const JWT_SECRET = process.env.SECRET_KEY;
 
 
 // Insert User Data in DataBase_____________
@@ -64,7 +64,7 @@ Router.post('/signup',
                     password: securePass,
                 });
 
-                // create a new otp
+                // Code to create otp
 
                 let otpCode = Math.floor(Math.random() * 10000 + 1);
                 let otpData = new Otp({
@@ -87,7 +87,6 @@ Router.post('/signup',
                     })
                     .then((message) => console.log(message.sid));
                 let otpResponse = await otpData.save();
-                console.log("otpResponse", otpResponse);
                 return res
                     .status(200)
                     .json({
@@ -177,10 +176,10 @@ Router.post("/forget-password", async (req, res) => {
         if (!user) {
             res.statusCode = 400;
             res.json({
-                error: "Please Enter Valid email"
+                error: "Please Enter Valid email ID"
             })
         } else {
-            // Code for Make Otp________________
+            // Code To Make Otp________________
 
             let otpCode = Math.floor(Math.random() * 10000 + 1);
             let otpData = new Otp({
@@ -234,7 +233,7 @@ Router.post("/verification", async (req, res) => {
                         id: user.id,
                     },
                 };
-                let authToken = jwt.sign(data, JWT_SECRET,{expiresIn: "5minutes"});
+                let authToken = jwt.sign(data, JWT_SECRET, { expiresIn: "10minutes" });
                 res.json({
                     success: "true",
                     authToken
@@ -263,16 +262,22 @@ Router.post("/reset-password",
                 res.statusCode = 400;
                 res.json({ errors: errors.array() });
             }
+
+            // Password encryption by bcryptjs
+
             const salt = bcrypt.genSaltSync(saltRounds);
             const securePass = bcrypt.hashSync(req.body.password, salt);
 
-            console.log("req.user.id",req.user.id);
+            let userId = req.user.id;
+            let user = await Usermodel.findById(userId);
+            user.password = securePass;
+            user.save();
+            res.json({ success: true, message: "Password Changed Sucessfully" });
         } catch (error) {
             console.log("reset-password", error);
             res.status(500).send("Internal Server Error:" + error.message);
         }
     })
-
 
 // Router.post("/uploadImage",
 //     // [
