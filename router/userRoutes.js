@@ -233,7 +233,7 @@ Router.post("/verification", async (req, res) => {
                         id: user.id,
                     },
                 };
-                let authToken = jwt.sign(data, JWT_SECRET, { expiresIn: "10minutes" });
+                let authToken = jwt.sign(data, JWT_SECRET, { expiresIn: "2h" });
                 res.json({
                     success: "true",
                     authToken
