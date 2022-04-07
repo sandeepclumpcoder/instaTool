@@ -66,13 +66,13 @@ Router.post('/signup',
 
                 // Code to create otp
 
-                let otpCode = Math.floor(Math.random() * 10000 + 1);
+                let otpCode = Math.floor(1000 + Math.random() * 9000);
+                console.log("otpCode",otpCode);
                 let otpData = new Otp({
                     email: req.body.email,
                     code: otpCode,
                     expireIn: new Date().getTime() + 300 * 1000,
                 });
-
                 // Code To send Otp to Mobile
                 client.messages
                     .create({
@@ -181,7 +181,7 @@ Router.post("/forget-password", async (req, res) => {
         } else {
             // Code To Make Otp________________
 
-            let otpCode = Math.floor(Math.random() * 10000 + 1);
+            let otpCode = Math.floor(1000 + Math.random() * 9000);
             let otpData = new Otp({
                 email: req.body.email,
                 code: otpCode,
