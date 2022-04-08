@@ -3,15 +3,17 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const userAuth = require('./router/userRoutes');
-const dbConnection  = require('./db');
+const connectToMongo  = require('./db');
 const fileupload = require("express-fileupload");
 
-dbConnection.connectToMongo();
+
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(express.static(__dirname + "/public"));
+
+connectToMongo();
 
 app.use(express.json());
-app.use(bodyParser.urlencoded({extended:true}));
 app.use(fileupload());
-app.use(express.static(__dirname + "/public"));
 app.use('/' , userAuth);
 
 app.listen(3000 , ()=>{
