@@ -2,14 +2,14 @@ const mongoose = require('mongoose');
 
 const mongoURI = "mongodb://127.0.0.1:27017/instaTool"
 
-const connectToMongo = async () => {
-    mongoose.connect(mongoURI, () => {
+// const connectToMongo = async () => {
+//     mongoose.connect(mongoURI, () => {
 
-    }).then(() => console.log("Database connected!"))
-    .catch((err) => console.log(err));
-}
+//     }).then(() => console.log("Database connected!"))
+//     .catch((err) => console.log(err));
+// }
 
-module.exports = connectToMongo;
+// module.exports = connectToMongo;
 
 // module.exports.connectToMongo =async  () => {
 //     return new Promise((resolve, reject) => {
@@ -39,13 +39,13 @@ module.exports = connectToMongo;
 //         .catch((err) => console.log(err));
 // }
 
-// module.exports.connectToMongo = async () => {
-//     mongoose
-//         .connect(mongoURI, {
-//             useNewUrlParser: true,
-//             useUnifiedTopology: true
-//         })
-//         .then(() => console.log("Database connected!"))
-//         .catch((err) => console.log(err));
-// }
+module.exports.connectToMongo = async () => {
+    mongoose
+        .connect(mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        })
+        .then(() => console.log("Database connected!"))
+        .catch((err) => console.log(err));
+}
 
