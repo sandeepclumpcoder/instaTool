@@ -40,10 +40,11 @@ Router.post('/signup',
 
             const userInfo = {
                 email: req.body.email,
-                password: req.body.password
+                mobile: req.body.mobile
             }
-            let userDetails = await Usermodel.findOne({ userInfo });
-            if (userDetails && userDetails.email) {
+            let userDetails = await Usermodel.findOne(userInfo);
+            console.log("userdetails", userDetails);
+            if (userDetails) {
                 return res.status(400).json({
                     error:
                         "Sorry a user with same credentials already exist. please try with an unique credentials",
@@ -67,7 +68,7 @@ Router.post('/signup',
                 // Code to create otp
 
                 let otpCode = Math.floor(1000 + Math.random() * 9000);
-                console.log("otpCode",otpCode);
+                console.log("otpCode", otpCode);
                 let otpData = new Otp({
                     email: req.body.email,
                     code: otpCode,
