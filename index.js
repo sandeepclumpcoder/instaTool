@@ -9,7 +9,7 @@ const fileupload = require("express-fileupload");
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static(__dirname + "/public"));
-connectToMongo();
+connectToMongo.connectToMongo();
 
 app.use(express.json());
 app.use(fileupload());

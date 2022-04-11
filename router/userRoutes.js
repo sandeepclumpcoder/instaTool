@@ -42,7 +42,7 @@ Router.post('/signup',
                 email: req.body.email,
                 password: req.body.password
             }
-            let userDetails = Usermodel.findOne({ userInfo });
+            let userDetails = await Usermodel.findOne({ userInfo });
             if (userDetails && userDetails.email) {
                 return res.status(400).json({
                     error:
