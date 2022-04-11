@@ -43,7 +43,6 @@ Router.post('/signup',
                 mobile: req.body.mobile
             }
             let userDetails = await Usermodel.findOne(userInfo);
-            console.log("userdetails", userDetails);
             if (userDetails) {
                 return res.status(400).json({
                     error:
@@ -68,7 +67,6 @@ Router.post('/signup',
                 // Code to create otp
 
                 let otpCode = Math.floor(1000 + Math.random() * 9000);
-                console.log("otpCode", otpCode);
                 let otpData = new Otp({
                     email: req.body.email,
                     code: otpCode,
